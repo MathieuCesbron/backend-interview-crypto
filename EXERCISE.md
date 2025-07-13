@@ -32,15 +32,3 @@ You can use any RPC provider you want. If you need an example or reference
 [RPC ethereum](https://docs.blockdaemon.com/reference/how-to-access-ethereum-api)
 
 [RPC bitcoin](https://docs.blockdaemon.com/reference/how-to-access-bitcoin-api)
-
-
-# don't use websockets, do the same for every chains.
-Find the starting block,
-
-chain
-starting block height
-current block height
-latestprocessed block height
-
-at first start == current
-To update current 

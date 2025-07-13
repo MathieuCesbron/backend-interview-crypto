@@ -1,24 +1,23 @@
 # Backend Interview Crypto
 
-Start Kafka
+1. Copy `.env.example` as `.env` and fill it. 
+
+2. Start Kafka
 ```bash
 docker-compose up -d
 ```
 
-Start the service
+3. Start the service
 ```bash
 go run cmd/main.go
 ```
 
-See transactions in Kafka
+4. See transactions in Kafka
 ```bash
 docker-compose exec kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic transactions --from-beginning
 ```
 
-Check transactions
-```
-https://solana.fm/?cluster=mainnet-alpha
-```
+Check transactions on explorers: [Solana](https://solana.fm/?cluster=mainnet-alpha)
 
 Improvements:
 – Add retries on requests 

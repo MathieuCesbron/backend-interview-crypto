@@ -28,7 +28,7 @@ func main() {
 	// Start kafka writer
 	go kafka.StartKafka(kafkaChan, kafkaWriter)
 
-	// Start blockains watchers
+	// Start blockchains watchers
 	watchers := []chain.Watcher{
 		solana.NewSolanaWatcher(kafkaWriter, kafkaChan),
 	}
