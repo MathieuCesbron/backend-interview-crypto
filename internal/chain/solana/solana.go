@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"log"
+	"math/big"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -21,41 +22,35 @@ const (
 	// For now, we will use 1 worker to avoid rate limiting issues.
 	maxSlotWorkers = 1
 
-	// The maximum time to wait before updating the max slot.
+	// The time to wait before updating the max slot.
 	// The lower the better, but we don't want to get rate limited.
 	UpdateMaxSlotTicker = 500 * time.Millisecond
 )
 
 type SolanaWatcher struct {
-	KafkaWriter *kafka.Writer
-	Client      *client.Client
+	Client *client.Client
 
 	CurrentSlot uint64
 	MaxSlot     uint64
 
-	Addresses []string
-
 	KafkaChan chan<- kafka.Message
 }
 
-func NewSolanaWatcher(kafkaWriter *kafka.Writer, kafkaChan chan<- kafka.Message) *SolanaWatcher {
+func NewSolanaWatcher(kafkaChan chan<- kafka.Message) *SolanaWatcher {
 	s := &SolanaWatcher{
-		Client:      CreateSolanaClient(),
-		KafkaWriter: kafkaWriter,
-		Addresses:   strings.Split(os.Getenv("SOLANA_ADDRESSES"), ","),
-
+		Client:    CreateSolanaClient(),
 		KafkaChan: kafkaChan,
 	}
 
-	currentSlot, err := s.GetCurrentSlot()
+	maxSlot, err := s.GetMaxSlot()
 	for err != nil {
-		log.Printf("Error getting current slot: %v. Retrying...\n", err)
+		log.Printf("error getting solana max slot: %v. Retrying...\n", err)
 		time.Sleep(time.Second)
-		currentSlot, err = s.GetCurrentSlot()
+		maxSlot, err = s.GetMaxSlot()
 	}
 
-	atomic.StoreUint64(&s.CurrentSlot, currentSlot)
-	atomic.StoreUint64(&s.MaxSlot, currentSlot)
+	atomic.StoreUint64(&s.CurrentSlot, maxSlot)
+	atomic.StoreUint64(&s.MaxSlot, maxSlot)
 
 	return s
 }
@@ -64,7 +59,11 @@ func (s *SolanaWatcher) Name() chain.Chain {
 	return chain.SolanaName
 }
 
-func (s *SolanaWatcher) GetCurrentSlot() (uint64, error) {
+func (s *SolanaWatcher) Addresses() []string {
+	return strings.Split(os.Getenv("SOLANA_ADDRESSES"), ",")
+}
+
+func (s *SolanaWatcher) GetMaxSlot() (uint64, error) {
 	slot, err := s.Client.GetSlot(context.Background())
 	if err != nil {
 		return 0, err
@@ -77,15 +76,15 @@ func (s *SolanaWatcher) UpdateMaxSlot() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		slot, err := s.GetCurrentSlot()
+		maxSlot, err := s.GetMaxSlot()
 		if err != nil {
-			log.Printf("Error getting current slot: %v", err)
+			log.Printf("error getting current solana slot: %v", err)
 			continue
 		}
-		atomic.StoreUint64(&s.MaxSlot, slot)
+		atomic.StoreUint64(&s.MaxSlot, maxSlot)
 
 		current := atomic.LoadUint64(&s.CurrentSlot)
-		log.Printf("Solana slot lag: %d", int64(slot)-int64(current))
+		log.Printf("Solana slot lag: %d", maxSlot-current)
 	}
 }
 
@@ -118,21 +117,23 @@ func (s *SolanaWatcher) FilterTxs(txs []client.BlockTransaction) []chain.Transac
 			if binary.LittleEndian.Uint32(inst.Data[:4]) != 2 {
 				continue
 			}
-			amount := binary.LittleEndian.Uint64(inst.Data[4:12])
 
-			from := tx.AccountKeys[inst.Accounts[0]].String()
-			to := tx.AccountKeys[inst.Accounts[1]].String()
+			amount := new(big.Int).SetUint64(binary.LittleEndian.Uint64(inst.Data[4:12]))
+			fee := new(big.Int).SetUint64(tx.Meta.Fee)
 
-			for _, addr := range s.Addresses {
-				if from == addr || to == addr {
+			source := tx.AccountKeys[inst.Accounts[0]].String()
+			destination := tx.AccountKeys[inst.Accounts[1]].String()
+
+			for _, addr := range s.Addresses() {
+				if source == addr || destination == addr {
 					filtered = append(filtered, chain.Transaction{
 						Chain:       chain.SolanaName,
 						ID:          base58.Encode(tx.Transaction.Signatures[0]),
 						User:        addr,
-						Source:      from,
-						Destination: to,
+						Source:      source,
+						Destination: destination,
 						Amount:      amount,
-						Fee:         tx.Meta.Fee,
+						Fee:         fee,
 					})
 					break
 				}
@@ -143,8 +144,8 @@ func (s *SolanaWatcher) FilterTxs(txs []client.BlockTransaction) []chain.Transac
 	return filtered
 }
 
-func (s *SolanaWatcher) startWorkerPool(slots chan uint64, maxWorkers int) {
-	for i := 0; i < maxWorkers; i++ {
+func (s *SolanaWatcher) startWorkerPool(slots chan uint64, workers int) {
+	for range workers {
 		go func() {
 			for slot := range slots {
 				s.handleSlot(slot)
@@ -156,7 +157,7 @@ func (s *SolanaWatcher) startWorkerPool(slots chan uint64, maxWorkers int) {
 func (s *SolanaWatcher) handleSlot(slot uint64) {
 	txs, err := s.GetTxs(slot)
 	if err != nil {
-		log.Printf("Error getting transactions for slot %d: %v\n", slot, err)
+		log.Printf("error getting solana transactions for slot %d: %v\n", slot, err)
 		return
 	}
 
@@ -164,7 +165,7 @@ func (s *SolanaWatcher) handleSlot(slot uint64) {
 	for _, filteredTx := range filteredTxs {
 		payload, err := json.Marshal(filteredTx)
 		if err != nil {
-			log.Printf("Error marshalling transaction: %+v\n", filteredTx)
+			log.Printf("error marshalling solana transaction: %+v\n", filteredTx)
 			continue
 		}
 		s.KafkaChan <- kafka.Message{Value: payload}

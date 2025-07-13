@@ -10,7 +10,7 @@ import (
 
 const ethRPCURL = "https://svc.blockdaemon.com/ethereum/mainnet/native"
 
-func CreateEthereumClient(ctx context.Context) *ethclient.Client {
+func CreateClient() *ethclient.Client {
 	HTTPClient := chain.NewCustomClient()
 	rpcClient, _ := rpc.DialOptions(context.Background(), ethRPCURL, rpc.WithHTTPClient(HTTPClient))
 

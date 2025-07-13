@@ -1,5 +1,7 @@
 package chain
 
+import "math/big"
+
 type Chain string
 
 const (
@@ -8,16 +10,17 @@ const (
 )
 
 type Transaction struct {
-	Chain       Chain  `json:"chain"`
-	ID          string `json:"id"`
-	User        string `json:"user"`
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-	Amount      uint64 `json:"amount"`
-	Fee         uint64 `json:"fee"`
+	Chain       Chain    `json:"chain"`
+	ID          string   `json:"id"`
+	User        string   `json:"user"`
+	Source      string   `json:"source"`
+	Destination string   `json:"destination"`
+	Amount      *big.Int `json:"amount"`
+	Fee         *big.Int `json:"fee"`
 }
 
 type Watcher interface {
 	Name() Chain
+	Addresses() []string
 	Watch()
 }

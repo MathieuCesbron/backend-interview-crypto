@@ -17,7 +17,7 @@ go run cmd/main.go
 docker-compose exec kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic transactions --from-beginning
 ```
 
-Check transactions on explorers: [Solana](https://solana.fm/?cluster=mainnet-alpha)
+Check transactions on explorers: [Solana](https://solana.fm/?cluster=mainnet-alpha), [Ethereum](https://etherscan.io/)
 
 Improvements:
 – Add retries on requests 
@@ -25,8 +25,8 @@ Improvements:
 – Pay to not get rate limited on solana
 – Graceful shutdown
 
-
 TODO
-– Add Ethereum watcher
-- Add Bitcoin watcher
 – Add tests
+- Check direciton of chan in signautre of funciton <-chan or chan<-
+– add database to put the last block done
+- Add Bitcoin watcher

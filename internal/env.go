@@ -11,6 +11,7 @@ import (
 var envVars = []string{
 	"BLOCKDAEMON_API_KEY",
 	"SOLANA_ADDRESSES",
+	"ETHEREUM_ADDRESSES",
 }
 
 func CheckEnvVars() error {

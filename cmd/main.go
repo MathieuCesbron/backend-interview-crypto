@@ -5,9 +5,9 @@ import (
 
 	"github.com/MathieuCesbron/backend-interview-crypto/internal"
 	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain"
+	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain/ethereum"
 	"github.com/MathieuCesbron/backend-interview-crypto/internal/kafka"
 
-	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain/solana"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
@@ -30,7 +30,9 @@ func main() {
 
 	// Start blockchains watchers
 	watchers := []chain.Watcher{
-		solana.NewSolanaWatcher(kafkaWriter, kafkaChan),
+		// solana.NewSolanaWatcher(kafkaChan),
+		ethereum.NewEthereumWatcher(
+			ethereum.CreateClient(), kafkaChan),
 	}
 	for _, watcher := range watchers {
 		go watcher.Watch()
