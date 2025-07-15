@@ -26,7 +26,7 @@ Improvements:
 – Graceful shutdown
 
 TODO
-– Add tests
+– Add tests on solana
 - Check direciton of chan in signautre of funciton <-chan or chan<-
 – add database to put the last block done
 - Add Bitcoin watcher

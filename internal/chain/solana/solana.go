@@ -28,7 +28,7 @@ const (
 )
 
 type SolanaWatcher struct {
-	Client *client.Client
+	Client SolClient
 
 	CurrentSlot uint64
 	MaxSlot     uint64
@@ -36,9 +36,14 @@ type SolanaWatcher struct {
 	KafkaChan chan<- kafka.Message
 }
 
-func NewSolanaWatcher(kafkaChan chan<- kafka.Message) *SolanaWatcher {
+type SolClient interface {
+	GetSlot(ctx context.Context) (uint64, error)
+	GetBlockWithConfig(ctx context.Context, slot uint64, cfg client.GetBlockConfig) (*client.Block, error)
+}
+
+func NewSolanaWatcher(client SolClient, kafkaChan chan<- kafka.Message) *SolanaWatcher {
 	s := &SolanaWatcher{
-		Client:    CreateSolanaClient(),
+		Client:    client,
 		KafkaChan: kafkaChan,
 	}
 

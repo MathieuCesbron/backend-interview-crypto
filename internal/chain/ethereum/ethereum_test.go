@@ -22,7 +22,7 @@ const (
 	publicKey1  = "0x8c4e4B063b682dd78c2E79896361C7B13a9d011F"
 	privateKey1 = "bfee092a0cdb7bb15d99b56fe20a938a7cf72616ffb690ca85cf0c0c1fd972ed"
 
-	// we watch this publicKey
+	// we watch this public key
 	publicKey2  = "0x1554027f94c6F0FD54B066cB0B0Ef3cBB0aB8eCB"
 	privateKey2 = "fa65838a0b111dc2e44a37c6c824b3acd6e15ae45df95e4696779c35ec125d68"
 
@@ -34,18 +34,18 @@ const (
 	gasPrice = 10_0000_000
 )
 
-type mockEthClient struct {
+type mockClient struct {
 	block       uint64
 	fromPrivate string
 	to          string
 }
 
-func (m *mockEthClient) BlockNumber(ctx context.Context) (uint64, error) {
+func (m *mockClient) BlockNumber(ctx context.Context) (uint64, error) {
 	m.block++
 	return m.block, nil
 }
 
-func (m *mockEthClient) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
+func (m *mockClient) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
 	tx := types.NewTransaction(
 		0, common.HexToAddress(m.to), big.NewInt(amount), gasLimit, big.NewInt(gasPrice), nil,
 	)
@@ -81,20 +81,6 @@ func TestEthereumWatch(t *testing.T) {
 	}{
 		{
 			name:        "watched one transaction with user as source",
-			fromPrivate: privateKey1,
-			to:          publicKey2,
-			expectedTx: chain.Transaction{
-				ID:          txID1,
-				Chain:       chain.EthereumName,
-				User:        strings.ToLower(publicKey2),
-				Source:      strings.ToLower(publicKey1),
-				Destination: strings.ToLower(publicKey2),
-				Amount:      big.NewInt(amount),
-				Fee:         big.NewInt(gasLimit * gasPrice),
-			},
-		},
-		{
-			name:        "watched one transaction with user as destination",
 			fromPrivate: privateKey2,
 			to:          publicKey1,
 			expectedTx: chain.Transaction{
@@ -103,6 +89,20 @@ func TestEthereumWatch(t *testing.T) {
 				User:        strings.ToLower(publicKey2),
 				Source:      strings.ToLower(publicKey2),
 				Destination: strings.ToLower(publicKey1),
+				Amount:      big.NewInt(amount),
+				Fee:         big.NewInt(gasLimit * gasPrice),
+			},
+		},
+		{
+			name:        "watched one transaction with user as destination",
+			fromPrivate: privateKey1,
+			to:          publicKey2,
+			expectedTx: chain.Transaction{
+				ID:          txID1,
+				Chain:       chain.EthereumName,
+				User:        strings.ToLower(publicKey2),
+				Source:      strings.ToLower(publicKey1),
+				Destination: strings.ToLower(publicKey2),
 				Amount:      big.NewInt(amount),
 				Fee:         big.NewInt(gasLimit * gasPrice),
 			},
@@ -117,12 +117,12 @@ func TestEthereumWatch(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			mockClient := &mockEthClient{
+			client := &mockClient{
 				fromPrivate: test.fromPrivate,
 				to:          test.to,
 			}
 			kafkaChan := make(chan kafka.Message, 1)
-			e := NewEthereumWatcher(mockClient, kafkaChan)
+			e := NewEthereumWatcher(client, kafkaChan)
 
 			os.Setenv("ETHEREUM_ADDRESSES", publicKey2)
 

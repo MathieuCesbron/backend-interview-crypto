@@ -10,7 +10,7 @@ const (
 	rpcURL = "https://svc.blockdaemon.com/solana/mainnet/native"
 )
 
-func CreateSolanaClient() *client.Client {
+func CreateClient() *client.Client {
 	HTTPClient := chain.NewCustomClient()
 
 	return client.New(rpc.WithEndpoint(rpcURL), rpc.WithHTTPClient(HTTPClient))
