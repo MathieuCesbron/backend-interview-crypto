@@ -77,7 +77,7 @@ func (e *EthereumWatcher) UpdateMaxBlock() {
 	}
 }
 
-func (e *EthereumWatcher) startWorkerPool(blocks chan uint64, workers int) {
+func (e *EthereumWatcher) startWorkerPool(blocks <-chan uint64, workers int) {
 	for range workers {
 		go func() {
 			for block := range blocks {
@@ -147,7 +147,7 @@ func (e *EthereumWatcher) handleBlock(block uint64) {
 	}
 }
 
-func (e *EthereumWatcher) scheduleBlocks(blocks chan uint64) {
+func (e *EthereumWatcher) scheduleBlocks(blocks chan<- uint64) {
 	for {
 		currentBlock := atomic.LoadUint64(&e.CurrentBlock)
 		maxBlock := atomic.LoadUint64(&e.MaxBlock)

@@ -140,7 +140,7 @@ func (s *SolanaWatcher) FilterTxs(txs []client.BlockTransaction) []chain.Transac
 	return filtered
 }
 
-func (s *SolanaWatcher) startWorkerPool(slots chan uint64, workers int) {
+func (s *SolanaWatcher) startWorkerPool(slots <-chan uint64, workers int) {
 	for range workers {
 		go func() {
 			for slot := range slots {
@@ -168,7 +168,7 @@ func (s *SolanaWatcher) handleSlot(slot uint64) {
 	}
 }
 
-func (s *SolanaWatcher) scheduleSlots(slots chan uint64) {
+func (s *SolanaWatcher) scheduleSlots(slots chan<- uint64) {
 	for {
 		currentSlot := atomic.LoadUint64(&s.CurrentSlot)
 		maxSlot := atomic.LoadUint64(&s.MaxSlot)

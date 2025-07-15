@@ -20,13 +20,15 @@ docker-compose exec kafka kafka-console-consumer.sh --bootstrap-server localhost
 Check transactions on explorers: [Solana](https://solana.fm/?cluster=mainnet-alpha), [Ethereum](https://etherscan.io/)
 
 Improvements:
+– Add Bitcoin watcher
 – Add retries on requests 
 – Validate addresses
 – Pay to not get rate limited on solana
 – Graceful shutdown
+- Add a database to restart on the current block stored
 
-TODO
-- Check direciton of chan in signautre of funciton <-chan or chan<-
-- put all the const on top of file at least like ticker time
-– add database to put the last block done
-- Add Bitcoin watcher
+Todo:
+- Retry the code if all good, update api variables.
+- redo the README
+- check everything a last time
+- redo the .env.example
