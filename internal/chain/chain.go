@@ -21,6 +21,10 @@ type Transaction struct {
 
 type Watcher interface {
 	Name() Chain
+
+	// Addresses returns the list of adress to watch.
 	Addresses() []string
+
+	// Watch monitors blocks for transactions.
 	Watch()
 }

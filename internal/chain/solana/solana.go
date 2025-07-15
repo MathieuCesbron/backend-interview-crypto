@@ -18,15 +18,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-const (
-	// For now, we will use 1 worker to avoid rate limiting issues.
-	maxSlotWorkers = 1
-
-	// The time to wait before updating the max slot.
-	// The lower the better, but we don't want to get rate limited.
-	UpdateMaxSlotTicker = 500 * time.Millisecond
-)
-
 type SolanaWatcher struct {
 	Client SolClient
 
@@ -77,7 +68,7 @@ func (s *SolanaWatcher) GetMaxSlot() (uint64, error) {
 }
 
 func (s *SolanaWatcher) UpdateMaxSlot() {
-	ticker := time.NewTicker(UpdateMaxSlotTicker)
+	ticker := time.NewTicker(chain.UpdateSlotTicker)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -194,8 +185,8 @@ func (s *SolanaWatcher) scheduleSlots(slots chan uint64) {
 func (s *SolanaWatcher) Watch() {
 	go s.UpdateMaxSlot()
 
-	slots := make(chan uint64, maxSlotWorkers)
+	slots := make(chan uint64, chain.SolSlotWorkers)
 
-	s.startWorkerPool(slots, maxSlotWorkers)
+	s.startWorkerPool(slots, chain.SolSlotWorkers)
 	s.scheduleSlots(slots)
 }

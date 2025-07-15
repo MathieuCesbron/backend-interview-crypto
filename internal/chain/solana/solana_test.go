@@ -152,7 +152,7 @@ func TestSolanaWatch(t *testing.T) {
 					t.Errorf("transaction mismatch. (-want +got):\n%s", diff)
 				}
 
-			case <-time.After(UpdateMaxSlotTicker + time.Second):
+			case <-time.After(chain.UpdateSlotTicker + time.Second):
 				if test.expectedTx != (chain.Transaction{}) {
 					t.Errorf("got nothing, expected a transaction: %+v", test.expectedTx)
 				}

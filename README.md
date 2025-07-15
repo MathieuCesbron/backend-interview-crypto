@@ -26,7 +26,7 @@ Improvements:
 – Graceful shutdown
 
 TODO
-– Add tests on solana
 - Check direciton of chan in signautre of funciton <-chan or chan<-
+- put all the const on top of file at least like ticker time
 – add database to put the last block done
 - Add Bitcoin watcher

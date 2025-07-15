@@ -16,14 +16,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-const (
-	maxBlockWorkers = 2
-
-	// The time to wait before updating the max block.
-	// The lower the better, but we don't want to get rate limited.
-	updateMaxBlockTicker = 2 * time.Second
-)
-
 type EthereumWatcher struct {
 	Client EthClient
 
@@ -66,7 +58,7 @@ func (e *EthereumWatcher) Addresses() []string {
 }
 
 func (e *EthereumWatcher) UpdateMaxBlock() {
-	ticker := time.NewTicker(updateMaxBlockTicker)
+	ticker := time.NewTicker(chain.EthBlockTicker)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -172,8 +164,8 @@ func (e *EthereumWatcher) scheduleBlocks(blocks chan uint64) {
 func (e *EthereumWatcher) Watch() {
 	go e.UpdateMaxBlock()
 
-	blocks := make(chan uint64, maxBlockWorkers)
+	blocks := make(chan uint64, chain.EthBlockWorkers)
 
-	e.startWorkerPool(blocks, maxBlockWorkers)
+	e.startWorkerPool(blocks, chain.EthBlockWorkers)
 	e.scheduleBlocks(blocks)
 }

@@ -139,7 +139,7 @@ func TestEthereumWatch(t *testing.T) {
 					t.Errorf("transaction mismatch. (-want +got):\n%s", diff)
 				}
 
-			case <-time.After(updateMaxBlockTicker + time.Second):
+			case <-time.After(chain.EthBlockTicker + time.Second):
 				if test.expectedTx != (chain.Transaction{}) {
 					t.Errorf("got nothing, expected a transaction: %+v", test.expectedTx)
 				}

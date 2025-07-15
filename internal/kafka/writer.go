@@ -8,38 +8,43 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+const (
+	batchSize     = 100
+	flushInterval = 200 * time.Millisecond
+
+	numPartitions     = 1
+	replicationFactor = 1
+
+	broker = "localhost:9092"
+	topic  = "transactions"
+)
+
+type Writer interface {
+	WriteMessages(ctx context.Context, msgs ...kafka.Message) error
+}
+
 func InitKafkaWriter() *kafka.Writer {
 	return kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{"localhost:9092"},
-		Topic:   "transactions",
+		Brokers: []string{broker},
+		Topic:   topic,
 	})
 }
 
 func CreateKafkaTopic() error {
-	conn, err := kafka.Dial("tcp", "localhost:9092")
+	conn, err := kafka.Dial("tcp", broker)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	err = conn.CreateTopics(kafka.TopicConfig{
-		Topic:             "transactions",
-		NumPartitions:     1,
-		ReplicationFactor: 1,
+	return conn.CreateTopics(kafka.TopicConfig{
+		Topic:             topic,
+		NumPartitions:     numPartitions,
+		ReplicationFactor: replicationFactor,
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func StartKafka(msgChan <-chan kafka.Message, writer *kafka.Writer) {
-	const (
-		maxBatchSize  = 100
-		flushInterval = 200 * time.Millisecond
-	)
-
+func StartKafka(msgChan <-chan kafka.Message, writer Writer) {
 	ticker := time.NewTicker(flushInterval)
 	defer ticker.Stop()
 
@@ -50,19 +55,19 @@ func StartKafka(msgChan <-chan kafka.Message, writer *kafka.Writer) {
 		case msg := <-msgChan:
 			batch = append(batch, msg)
 
-			if len(batch) >= maxBatchSize {
-				flushKafkaBatch(writer, &batch)
+			if len(batch) >= batchSize {
+				flushBatch(writer, &batch)
 			}
 
 		case <-ticker.C:
 			if len(batch) > 0 {
-				flushKafkaBatch(writer, &batch)
+				flushBatch(writer, &batch)
 			}
 		}
 	}
 }
 
-func flushKafkaBatch(writer *kafka.Writer, batch *[]kafka.Message) {
+func flushBatch(writer Writer, batch *[]kafka.Message) {
 	err := writer.WriteMessages(context.Background(), (*batch)...)
 	if err != nil {
 		log.Printf("Kafka write error: %v", err)

@@ -8,11 +8,11 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-const ethRPCURL = "https://svc.blockdaemon.com/ethereum/mainnet/native"
+const rpcURL = "https://svc.blockdaemon.com/ethereum/mainnet/native"
 
 func CreateClient() *ethclient.Client {
 	HTTPClient := chain.NewCustomClient()
-	rpcClient, _ := rpc.DialOptions(context.Background(), ethRPCURL, rpc.WithHTTPClient(HTTPClient))
+	rpcClient, _ := rpc.DialOptions(context.Background(), rpcURL, rpc.WithHTTPClient(HTTPClient))
 
 	return ethclient.NewClient(rpcClient)
 }

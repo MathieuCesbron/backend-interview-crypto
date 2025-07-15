@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const timeout = 3 * time.Second
+
 type BearerTokenRoundTripper struct {
 	Next  http.RoundTripper
 	Token string
@@ -26,6 +28,6 @@ func NewCustomClient() *http.Client {
 
 	return &http.Client{
 		Transport: tokenTransport,
-		Timeout:   10 * time.Second,
+		Timeout:   timeout,
 	}
 }

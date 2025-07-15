@@ -5,10 +5,15 @@ import (
 
 	"github.com/MathieuCesbron/backend-interview-crypto/internal"
 	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain"
+	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain/ethereum"
 	"github.com/MathieuCesbron/backend-interview-crypto/internal/chain/solana"
 	"github.com/MathieuCesbron/backend-interview-crypto/internal/kafka"
 
 	kafkago "github.com/segmentio/kafka-go"
+)
+
+const (
+	kafkaBuffer = 1000
 )
 
 func main() {
@@ -23,17 +28,17 @@ func main() {
 		log.Fatal("failed to create Kafka topic:", err)
 	}
 	kafkaWriter := kafka.InitKafkaWriter()
-	kafkaChan := make(chan kafkago.Message, 1000)
+	kafkaChan := make(chan kafkago.Message, kafkaBuffer)
 
-	// Start kafka writer
+	// start kafka writer
 	go kafka.StartKafka(kafkaChan, kafkaWriter)
 
-	// Start blockchains watchers
+	// watch each blockchain
 	watchers := []chain.Watcher{
 		solana.NewSolanaWatcher(
 			solana.CreateClient(), kafkaChan),
-		// ethereum.NewEthereumWatcher(
-		// 	ethereum.CreateClient(), kafkaChan),
+		ethereum.NewEthereumWatcher(
+			ethereum.CreateClient(), kafkaChan),
 	}
 	for _, watcher := range watchers {
 		go watcher.Watch()

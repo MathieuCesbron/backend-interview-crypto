@@ -15,7 +15,6 @@ var envVars = []string{
 }
 
 func CheckEnvVars() error {
-	// err := godotenv.Load("../.env")
 	err := godotenv.Load()
 	if err != nil {
 		return err
@@ -30,5 +29,6 @@ func CheckEnvVars() error {
 	if len(missing) > 0 {
 		return fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
 	}
+
 	return nil
 }
