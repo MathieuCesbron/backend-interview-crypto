@@ -7,6 +7,7 @@ toolchain go1.23.11
 require (
 	github.com/blocto/solana-go-sdk v1.30.0
 	github.com/ethereum/go-ethereum v1.16.1
+	github.com/google/go-cmp v0.7.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mr-tron/base58 v1.2.0
 	github.com/segmentio/kafka-go v0.4.48

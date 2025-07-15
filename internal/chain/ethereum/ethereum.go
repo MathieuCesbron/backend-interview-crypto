@@ -109,6 +109,7 @@ func (e *EthereumWatcher) FilterTxs(data *types.Block) []chain.Transaction {
 		)
 		if err != nil {
 			log.Printf("error deriving signature for ethereum transaction %s: %v", tx.Hash().Hex(), err)
+			continue
 		}
 
 		amount := tx.Value()
