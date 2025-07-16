@@ -53,8 +53,12 @@ func (e *EthereumWatcher) Name() chain.Chain {
 	return chain.EthereumName
 }
 
-func (e *EthereumWatcher) Addresses() []string {
-	return strings.Split(strings.ToLower(os.Getenv("ETHEREUM_ADDRESSES")), ",")
+func (s *EthereumWatcher) Addresses() []string {
+	env := os.Getenv("ETHEREUM_ADDRESSES")
+	if env == "" {
+		return []string{}
+	}
+	return strings.Split(env, ",")
 }
 
 func (e *EthereumWatcher) UpdateMaxBlock() {

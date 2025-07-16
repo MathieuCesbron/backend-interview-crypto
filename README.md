@@ -1,6 +1,6 @@
 # Backend Interview Crypto
 
-1. Copy `.env.example` as `.env` and fill it. 
+1. Copy `.env.example` as `.env` and fill it.
 
 2. Start Kafka
 ```bash
@@ -31,4 +31,3 @@ Todo:
 - Retry the code if all good, update api variables.
 - redo the README
 - check everything a last time
-- redo the .env.example

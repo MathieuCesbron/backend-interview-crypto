@@ -56,7 +56,11 @@ func (s *SolanaWatcher) Name() chain.Chain {
 }
 
 func (s *SolanaWatcher) Addresses() []string {
-	return strings.Split(os.Getenv("SOLANA_ADDRESSES"), ",")
+	env := os.Getenv("SOLANA_ADDRESSES")
+	if env == "" {
+		return []string{}
+	}
+	return strings.Split(env, ",")
 }
 
 func (s *SolanaWatcher) GetMaxSlot() (uint64, error) {
