@@ -76,7 +76,7 @@ func (e *EthereumWatcher) UpdateMaxBlock() {
 
 		if maxBlock >= current {
 			atomic.StoreUint64(&e.MaxBlock, maxBlock)
-			log.Printf("Ethereum block lag: %d blocks", maxBlock-current)
+			log.Printf("Ethereum block lag: %d", maxBlock-current)
 		}
 	}
 }
